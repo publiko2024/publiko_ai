@@ -37,35 +37,39 @@ public class EmbeddingService {
         vectorStore.add(documents);
     }
 
-    public void savePdfEmbedding(MultipartFile file) throws IOException {
-        TikaDocumentReader tikaDocumentReader = new TikaDocumentReader(new InputStreamResource(file.getInputStream()));
-        List<Document> documents = tikaDocumentReader.read();
+    public void savePdfEmbedding(MultipartFile file){
+        try{
+            TikaDocumentReader tikaDocumentReader = new TikaDocumentReader(new InputStreamResource(file.getInputStream()));
+            List<Document> documents = tikaDocumentReader.read();
 
-        List<Document> splitDocuments = new ArrayList<>();
-        EncodingRegistry registry = Encodings.newDefaultEncodingRegistry();
-        Encoding enc = registry.getEncodingForModel(ModelType.GPT_3_5_TURBO);
-        final int maxTokens = 1000;
+            List<Document> splitDocuments = new ArrayList<>();
+            EncodingRegistry registry = Encodings.newDefaultEncodingRegistry();
+            Encoding enc = registry.getEncodingForModel(ModelType.GPT_3_5_TURBO);
+            final int maxTokens = 1000;
 
-        for (Document doc : documents) {
-            String content = doc.getContent();
-            IntArrayList tokens = enc.encode(content);
+            for (Document doc : documents) {
+                String content = doc.getContent();
+                IntArrayList tokens = enc.encode(content);
 
-            for (int i = 0; i < tokens.size(); i += maxTokens) {
-                int end = Math.min(i + maxTokens, tokens.size());
-                IntArrayList chunkTokens = new IntArrayList();
-                for (int j = i; j < end; j++) {
-                    chunkTokens.add(tokens.get(j));
+                for (int i = 0; i < tokens.size(); i += maxTokens) {
+                    int end = Math.min(i + maxTokens, tokens.size());
+                    IntArrayList chunkTokens = new IntArrayList();
+                    for (int j = i; j < end; j++) {
+                        chunkTokens.add(tokens.get(j));
+                    }
+                    String chunkText = enc.decode(chunkTokens);
+
+                    Document splitDoc = new Document(chunkText, new HashMap<>(doc.getMetadata()));
+                    splitDoc.getMetadata().put("chunk_id", i / maxTokens);
+                    splitDocuments.add(splitDoc);
                 }
-                String chunkText = enc.decode(chunkTokens);
 
-                Document splitDoc = new Document(chunkText, new HashMap<>(doc.getMetadata()));
-                splitDoc.getMetadata().put("chunk_id", i / maxTokens);
-                splitDocuments.add(splitDoc);
             }
 
+            addDocuments(splitDocuments);
+        }catch (IOException e){
+            log.error(e.getMessage());
         }
-
-        addDocuments(splitDocuments);
     }
     public void addDocuments(List<Document> documents) throws IOException {
         vectorStore.add(documents);
