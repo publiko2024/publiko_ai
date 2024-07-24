@@ -1,5 +1,7 @@
 package com.publiko.ai.service;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.BulkResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
@@ -16,6 +18,7 @@ public class PromptService {
 
     private final ChatModel chatModel;
     private final VectorStore vectorStore;
+    private final ElasticsearchClient client;
 
     public ChatResponse getChatResponse(String query) {
 

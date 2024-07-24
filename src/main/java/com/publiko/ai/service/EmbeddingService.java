@@ -68,6 +68,7 @@ public class EmbeddingService {
         addDocuments(splitDocuments);
     }
     public void addDocuments(List<Document> documents) throws IOException {
+        vectorStore.add(documents);
         List<BulkOperation> operations = documents.stream()
             .map(doc -> new BulkOperation.Builder()
                 .index(new IndexOperation.Builder<Document>()
