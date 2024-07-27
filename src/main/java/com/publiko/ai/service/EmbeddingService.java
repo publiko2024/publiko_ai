@@ -29,8 +29,10 @@ public class EmbeddingService {
 
     private final VectorStore vectorStore;
     private final ElasticsearchClient client;
+    private final String indexName = "spring-ai-document-index";
 
     public void saveEmbedding(String text){
+        createIndexIfNotExists();
         List<Document> documents = List.of(
             new Document(text)
         );
@@ -38,6 +40,7 @@ public class EmbeddingService {
     }
 
     public void savePdfEmbedding(MultipartFile file){
+        createIndexIfNotExists();
         try{
             TikaDocumentReader tikaDocumentReader = new TikaDocumentReader(new InputStreamResource(file.getInputStream()));
             List<Document> documents = tikaDocumentReader.read();
@@ -87,5 +90,19 @@ public class EmbeddingService {
             .build();
 
         client.bulk(request);
+    }
+
+    private void createIndexIfNotExists() {
+        try {
+            boolean indexExists = client.indices().exists(b -> b.index(indexName)).value();
+            if (!indexExists) {
+                client.indices().create(c -> c.index(indexName));
+                log.info("Index {} created.", indexName);
+            } else {
+                log.info("Index {} already exists.", indexName);
+            }
+        } catch (IOException e) {
+            log.error("Error checking or creating index: {}", e.getMessage(), e);
+        }
     }
 }
