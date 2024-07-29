@@ -35,7 +35,7 @@ public class PromptService {
 
     public String getImageDescription(MultipartFile file) {
         return ChatClient.create(chatModel).prompt()
-            .user(u -> u.text("Explain what do you see on this picture?")
+            .user(u -> u.text("이 사진에서 무엇이 보이는지 설명해 줄래?")
                 .media(MimeTypeUtils.IMAGE_PNG, file.getResource()))
             .call()
             .content();
