@@ -1,8 +1,5 @@
-FROM openjdk:21
-
-RUN mkdir -p deploy
-WORKDIR /deploy
-
-COPY ./build/libs/ai-0.0.1-SNAPSHOT.jar ai-server.jar
-
-ENTRYPOINT ["java","-jar","/deploy/ai-server.jar"]
+FROM amazoncorretto:21-alpine3.16-jdk
+VOLUME /tmp
+ARG JAR_FILE=./build/libs/*-SNAPSHOT.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["java","-jar","-Dspring.profiles.active=prod","/app.jar"]
