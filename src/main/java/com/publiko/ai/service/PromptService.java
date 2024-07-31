@@ -1,7 +1,5 @@
 package com.publiko.ai.service;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch.core.BulkResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
@@ -11,6 +9,8 @@ import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MimeTypeUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -18,7 +18,6 @@ public class PromptService {
 
     private final ChatModel chatModel;
     private final VectorStore vectorStore;
-    private final ElasticsearchClient client;
 
     public ChatResponse getChatResponse(String query) {
 
@@ -32,5 +31,13 @@ public class PromptService {
             .user(query).options(options)
             .call()
             .chatResponse();
+    }
+
+    public String getImageDescription(MultipartFile file) {
+        return ChatClient.create(chatModel).prompt()
+            .user(u -> u.text("이 사진에서 무엇이 보이는지 설명해 줄래?")
+                .media(MimeTypeUtils.IMAGE_PNG, file.getResource()))
+            .call()
+            .content();
     }
 }
