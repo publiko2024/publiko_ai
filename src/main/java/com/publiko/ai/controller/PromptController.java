@@ -36,4 +36,9 @@ public class PromptController {
         return promptService.getImageDescription(file);
     }
 
+    @PostMapping("/multimodal-stream")
+    public Flux<String> getImageDescriptionStream(@RequestPart("file") @Nullable MultipartFile file) {
+        return promptService.getImageDescriptionStream(file);
+    }
+
 }
