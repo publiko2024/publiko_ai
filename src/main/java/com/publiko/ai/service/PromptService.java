@@ -11,6 +11,7 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Flux;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +32,20 @@ public class PromptService {
             .user(query).options(options)
             .call()
             .chatResponse();
+    }
+
+    public Flux<String> getChatResponseStream(String query) {
+
+        final OpenAiChatOptions options = OpenAiChatOptions.builder()
+                .withModel("gpt-4")
+                .withTemperature(0.2F).build();
+
+        return ChatClient.builder(chatModel)
+                .build().prompt()
+                .advisors(new QuestionAnswerAdvisor(vectorStore, SearchRequest.defaults()))
+                .user(query).options(options)
+                .stream()
+                .content();
     }
 
     public String getImageDescription(MultipartFile file) {
